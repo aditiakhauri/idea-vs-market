@@ -91,15 +91,21 @@ app.post('/api/analyze', async (req, res) => {
     return res.status(400).json({ error: 'Please provide a detailed startup description.' });
   }
 
-  if (!process.env.OPENAI_API_KEY) {
-    return res.status(500).json({ error: 'OPENAI_API_KEY not configured. Add it to your .env file.' });
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'GEMINI_API_KEY not configured. Add it to your .env file.' });
   }
 
   try {
-    const OpenAI = require('openai');
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const { GoogleGenerativeAI } = require('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash',
+      generationConfig: { responseMimeType: 'application/json', temperature: 0.7, maxOutputTokens: 4096 },
+    });
 
-    const userPrompt = `Analyze this startup idea thoroughly:
+    const userPrompt = `${SYSTEM_PROMPT}
+
+Analyze this startup idea thoroughly:
 
 **Startup Name:** ${name || 'Not provided'}
 **One-liner:** ${oneLiner || 'Not provided'}
@@ -112,18 +118,8 @@ app.post('/api/analyze', async (req, res) => {
 
 Provide a comprehensive, honest analysis. Research the competitive landscape carefully, consider current 2024-2025 market conditions, and give realistic assessments. Remember: respond with ONLY valid JSON, no other text.`;
 
-    const completion = await client.chat.completions.create({
-      model: 'gpt-4o',
-      max_tokens: 4096,
-      temperature: 0.7,
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userPrompt },
-      ],
-    });
-
-    const rawText = completion.choices[0].message.content.trim();
+    const result = await model.generateContent(userPrompt);
+    const rawText = result.response.text().trim();
 
     let analysis;
     try {
@@ -151,7 +147,7 @@ if (process.env.NODE_ENV === 'production') {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  if (!process.env.OPENAI_API_KEY) {
-    console.warn('WARNING: OPENAI_API_KEY not set in .env file');
+  if (!process.env.GEMINI_API_KEY) {
+    console.warn('WARNING: GEMINI_API_KEY not set in .env file');
   }
 });

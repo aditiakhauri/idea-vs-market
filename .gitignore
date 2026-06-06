@@ -1,7 +1,6 @@
 .env
-.package.json
-.package-lock.json
-.node_modules
-.tailwind.config.js
 .env.example
-.vite.config.js
+package-lock.json
+node_modules
+tailwind.config.js
+vite.config.js
