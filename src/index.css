@@ -148,6 +148,11 @@ textarea:focus {
   100% { top: 100%; opacity: 0; }
 }
 
+/* Custom dropdown scroll */
+.custom-dropdown-scroll::-webkit-scrollbar { width: 4px; }
+.custom-dropdown-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-dropdown-scroll::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 2px; }
+
 /* Header gradient border */
 .header-gradient-border {
   border-bottom: 1px solid transparent;

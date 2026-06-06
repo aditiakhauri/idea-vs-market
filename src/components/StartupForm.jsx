@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import CustomSelect from './CustomSelect.jsx';
 
 const INDUSTRIES = [
   'SaaS / Software', 'AI / ML', 'Fintech', 'Healthtech', 'Edtech', 'E-commerce',
@@ -69,10 +70,12 @@ export default function StartupForm({ onSubmit }) {
           </div>
           <div>
             <label className={labelClass}>Industry / Category</label>
-            <select className={inputClass} value={form.industry} onChange={set('industry')}>
-              <option value="">Select industry...</option>
-              {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
-            </select>
+            <CustomSelect
+              value={form.industry}
+              onChange={set('industry')}
+              options={INDUSTRIES}
+              placeholder="Select industry..."
+            />
           </div>
         </div>
 
@@ -131,17 +134,21 @@ export default function StartupForm({ onSubmit }) {
           </div>
           <div>
             <label className={labelClass}>Current Stage</label>
-            <select className={inputClass} value={form.stage} onChange={set('stage')}>
-              <option value="">Select stage...</option>
-              {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <CustomSelect
+              value={form.stage}
+              onChange={set('stage')}
+              options={STAGES}
+              placeholder="Select stage..."
+            />
           </div>
           <div>
             <label className={labelClass}>Target Market</label>
-            <select className={inputClass} value={form.geography} onChange={set('geography')}>
-              <option value="">Select region...</option>
-              {GEOGRAPHIES.map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
+            <CustomSelect
+              value={form.geography}
+              onChange={set('geography')}
+              options={GEOGRAPHIES}
+              placeholder="Select region..."
+            />
           </div>
         </div>
 
