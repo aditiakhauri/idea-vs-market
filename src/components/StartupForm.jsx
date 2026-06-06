@@ -20,14 +20,9 @@ const GEOGRAPHIES = [
 
 export default function StartupForm({ onSubmit }) {
   const [form, setForm] = useState({
-    name: '',
-    oneLiner: '',
-    description: '',
-    industry: '',
-    targetAudience: '',
-    stage: '',
-    geography: '',
-    uvp: '',
+    name: '', oneLiner: '', description: '',
+    industry: '', targetAudience: '', stage: '',
+    geography: '', uvp: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -44,13 +39,24 @@ export default function StartupForm({ onSubmit }) {
   }
 
   const inputClass =
-    'w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-accent/60 focus:ring-1 focus:ring-accent/30 transition-colors';
+    'w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 ' +
+    'focus:outline-none focus:border-accent/60 transition-all duration-200 ' +
+    'hover:border-border/80';
   const labelClass = 'block text-sm font-medium text-slate-300 mb-2';
+
+  const charCount = form.description.length;
+  const charColor = charCount === 0
+    ? 'text-slate-600'
+    : charCount < 100
+      ? 'text-orange-400/70'
+      : charCount < 300
+        ? 'text-yellow-400/70'
+        : 'text-emerald-400/70';
 
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-      <div className="card p-6 sm:p-8 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="glass-card p-6 sm:p-8 space-y-6 glow-border">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-slide-up-fade stagger-1">
           <div>
             <label className={labelClass}>Startup Name <span className="text-slate-500">(optional)</span></label>
             <input
@@ -70,7 +76,7 @@ export default function StartupForm({ onSubmit }) {
           </div>
         </div>
 
-        <div>
+        <div className="animate-slide-up-fade stagger-2">
           <label className={labelClass}>
             One-liner <span className="text-slate-500">(what does it do in one sentence?)</span>
           </label>
@@ -83,7 +89,7 @@ export default function StartupForm({ onSubmit }) {
           />
         </div>
 
-        <div>
+        <div className="animate-slide-up-fade stagger-3">
           <label className={labelClass}>
             Describe your startup idea <span className="text-red-400">*</span>
             <span className="text-slate-500 font-normal ml-1">— be as detailed as possible</span>
@@ -96,10 +102,12 @@ export default function StartupForm({ onSubmit }) {
             onChange={set('description')}
             required
           />
-          <p className="text-slate-600 text-xs mt-1.5">{form.description.length} chars — more detail = better analysis</p>
+          <p className={`text-xs mt-1.5 transition-colors duration-300 ${charColor}`}>
+            {charCount} chars{charCount >= 300 ? ' · Great detail!' : charCount >= 100 ? ' · Keep going...' : ' — more detail = better analysis'}
+          </p>
         </div>
 
-        <div>
+        <div className="animate-slide-up-fade stagger-4">
           <label className={labelClass}>Unique Value Proposition</label>
           <input
             type="text"
@@ -110,7 +118,7 @@ export default function StartupForm({ onSubmit }) {
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-slide-up-fade stagger-5">
           <div>
             <label className={labelClass}>Target Audience</label>
             <input
@@ -137,21 +145,32 @@ export default function StartupForm({ onSubmit }) {
           </div>
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2 animate-slide-up-fade stagger-6">
           <button
             type="submit"
             disabled={!form.description.trim() || submitting}
-            className="w-full py-4 rounded-xl font-semibold text-base transition-all duration-200
-              bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500
-              disabled:opacity-40 disabled:cursor-not-allowed
-              shadow-lg shadow-violet-900/30 hover:shadow-violet-800/40
+            className="shimmer-btn w-full py-4 rounded-xl font-semibold text-base text-white
+              transition-all duration-200
+              disabled:opacity-40 disabled:cursor-not-allowed disabled:animate-none
+              disabled:bg-gradient-to-r disabled:from-violet-600 disabled:to-blue-600
+              shadow-lg shadow-violet-900/30 hover:shadow-[0_0_35px_rgba(124,58,237,0.45)]
+              hover:scale-[1.015] active:scale-[0.99]
               flex items-center justify-center gap-2"
           >
-            <span>Analyze My Startup</span>
-            <span>→</span>
+            {submitting ? (
+              <>
+                <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <span>Analyze My Startup</span>
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
+              </>
+            )}
           </button>
           <p className="text-center text-slate-600 text-xs mt-3">
-            Takes ~20 seconds · Powered by Claude AI · No signup required
+            Takes ~20 seconds · Powered by Gemini AI · No signup required
           </p>
         </div>
       </div>
