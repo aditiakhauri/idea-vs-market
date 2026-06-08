@@ -4,88 +4,92 @@ export default function SuggestionsPanel({ suggestions, alternativeAngles, execu
   const [open, setOpen] = useState(false);
 
   const hasSuggestions = suggestions?.length > 0;
-  const hasAngles = alternativeAngles?.length > 0;
-  const hasPriorities = executionPriorities?.length > 0;
+  const hasAngles      = alternativeAngles?.length > 0;
+  const hasPriorities  = executionPriorities?.length > 0;
 
   if (!hasSuggestions && !hasAngles && !hasPriorities) return null;
 
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full card card-hover p-5 flex items-center justify-between group"
+        style={{ borderColor: 'rgba(124,58,237,0.25)', background: 'rgba(124,58,237,0.04)' }}
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
+            style={{ background: 'rgba(124,58,237,0.15)' }}>
+            💡
+          </div>
+          <div className="text-left">
+            <p className="font-display font-bold text-[14px] text-accentLight">Get Improvement Ideas</p>
+            <p className="text-text-3 text-[12px] mt-0.5">
+              {suggestions?.length || 0} suggestions · {alternativeAngles?.length || 0} pivots · {executionPriorities?.length || 0} quick wins
+            </p>
+          </div>
+        </div>
+        <span className="text-accentLight text-lg group-hover:translate-x-1 transition-transform">→</span>
+      </button>
+    );
+  }
+
   return (
-    <div className="space-y-4">
-      {!open ? (
-        <button
-          onClick={() => setOpen(true)}
-          className="w-full card card-hover border-violet-500/30 bg-violet-500/5 p-5 flex items-center justify-between group transition-all"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center text-xl">
-              💡
-            </div>
-            <div className="text-left">
-              <p className="font-semibold text-violet-300">Get Improvement Ideas</p>
-              <p className="text-slate-500 text-sm">
-                {suggestions?.length || 0} suggestions · {alternativeAngles?.length || 0} alternative angles · {executionPriorities?.length || 0} quick wins
-              </p>
-            </div>
-          </div>
-          <div className="text-violet-400 group-hover:translate-x-1 transition-transform text-lg">→</div>
+    <div className="space-y-3 animate-slide-up">
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-3">
+          <span>💡</span>
+          <h2 className="section-title">How to Make It Better</h2>
+          <div className="section-rule" />
+        </div>
+        <button onClick={() => setOpen(false)}
+          className="text-text-3 hover:text-text-1 text-[12px] transition-colors shrink-0 ml-4">
+          Hide ↑
         </button>
-      ) : (
-        <div className="animate-slide-up space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <span>💡</span> How to Make It Better
-            </h2>
-            <button
-              onClick={() => setOpen(false)}
-              className="text-slate-500 hover:text-slate-300 text-sm transition-colors"
-            >
-              Hide ↑
-            </button>
-          </div>
+      </div>
 
-          {hasSuggestions && (
-            <div className="card p-5 bg-violet-500/5 border-violet-500/20">
-              <h3 className="text-violet-400 font-medium text-sm mb-4">Actionable Suggestions</h3>
-              <ol className="space-y-3">
-                {suggestions.map((s, i) => (
-                  <li key={i} className="flex gap-3 text-sm text-slate-300">
-                    <span className="w-5 h-5 rounded-full bg-violet-500/20 text-violet-400 text-xs flex items-center justify-center shrink-0 mt-0.5 font-medium">
-                      {i + 1}
-                    </span>
-                    <span>{s}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
+      {hasSuggestions && (
+        <div className="card p-5"
+          style={{ background: 'rgba(124,58,237,0.04)', borderColor: 'rgba(124,58,237,0.18)' }}>
+          <p className="font-display font-bold text-[13px] text-accentLight mb-4">Actionable suggestions</p>
+          <ol className="space-y-3">
+            {suggestions.map((s, i) => (
+              <li key={i} className="flex gap-3 text-[13px] text-text-2">
+                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] shrink-0 mt-0.5 font-bold font-display text-accentLight"
+                  style={{ background: 'rgba(124,58,237,0.2)' }}>
+                  {i + 1}
+                </span>
+                {s}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
-          {hasAngles && (
-            <div className="card p-5 bg-blue-500/5 border-blue-500/20">
-              <h3 className="text-blue-400 font-medium text-sm mb-4">Alternative Angles / Pivots</h3>
-              <ul className="space-y-3">
-                {alternativeAngles.map((a, i) => (
-                  <li key={i} className="flex gap-3 text-sm text-slate-300">
-                    <span className="text-blue-400 mt-0.5 shrink-0">⇄</span>
-                    <span>{a}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+      {hasAngles && (
+        <div className="card p-5"
+          style={{ background: 'rgba(59,130,246,0.04)', borderColor: 'rgba(59,130,246,0.18)' }}>
+          <p className="font-display font-bold text-[13px] text-blue-400 mb-4">Alternative angles / pivots</p>
+          <ul className="space-y-3">
+            {alternativeAngles.map((a, i) => (
+              <li key={i} className="flex gap-3 text-[13px] text-text-2">
+                <span className="text-blue-400 shrink-0">⇄</span>{a}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-          {hasPriorities && (
-            <div className="card p-5 bg-emerald-500/5 border-emerald-500/20">
-              <h3 className="text-emerald-400 font-medium text-sm mb-4">Execution Priorities (Do These First)</h3>
-              <ul className="space-y-2">
-                {executionPriorities.map((p, i) => (
-                  <li key={i} className="flex gap-3 text-sm text-slate-300">
-                    <span className="text-emerald-400 shrink-0">✓</span>
-                    <span>{p}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+      {hasPriorities && (
+        <div className="card p-5"
+          style={{ background: 'rgba(16,185,129,0.04)', borderColor: 'rgba(16,185,129,0.18)' }}>
+          <p className="font-display font-bold text-[13px] text-emerald-400 mb-4">Do these first</p>
+          <ul className="space-y-2.5">
+            {executionPriorities.map((p, i) => (
+              <li key={i} className="flex gap-3 text-[13px] text-text-2">
+                <span className="text-emerald-400 shrink-0">✓</span>{p}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>

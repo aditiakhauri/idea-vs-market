@@ -5,19 +5,36 @@ const INDUSTRIES = [
   'SaaS / Software', 'AI / ML', 'Fintech', 'Healthtech', 'Edtech', 'E-commerce',
   'Marketplace', 'Consumer App', 'B2B Enterprise', 'Deep Tech / Hardware',
   'Web3 / Crypto', 'Climate Tech / GreenTech', 'FoodTech', 'PropTech',
-  'Gaming', 'Media / Content', 'Logistics / Supply Chain', 'HR Tech',
-  'LegalTech', 'Other',
+  'Gaming', 'Media / Content', 'Logistics / Supply Chain', 'HR Tech', 'LegalTech', 'Other',
 ];
-
-const STAGES = [
-  'Just an idea', 'Research phase', 'Building MVP', 'MVP launched',
-  'Early revenue', 'Growth stage',
-];
-
+const STAGES = ['Just an idea', 'Research phase', 'Building MVP', 'MVP launched', 'Early revenue', 'Growth stage'];
 const GEOGRAPHIES = [
   'Global', 'United States', 'Europe', 'India', 'Southeast Asia',
   'Latin America', 'Africa', 'Middle East', 'UK', 'Australia/NZ', 'Other',
 ];
+
+function FieldLabel({ children, hint, required }) {
+  return (
+    <label className="block mb-2">
+      <span className="text-[13px] font-semibold text-text-1/80 font-display">{children}</span>
+      {required && <span className="text-violet-400 ml-0.5">*</span>}
+      {hint && <span className="text-text-3 font-sans font-normal text-[12px] ml-1.5">{hint}</span>}
+    </label>
+  );
+}
+
+function SectionLabel({ children }) {
+  return (
+    <div className="flex items-center gap-3 mb-5">
+      <span className="label-text">{children}</span>
+      <div className="section-rule" />
+    </div>
+  );
+}
+
+const inputClass =
+  'w-full bg-surface border border-[rgba(255,255,255,0.07)] rounded-xl px-4 py-3 text-sm text-text-1 ' +
+  'placeholder-text-3 transition-all duration-200 hover:border-[rgba(255,255,255,0.12)] font-sans';
 
 export default function StartupForm({ onSubmit }) {
   const [form, setForm] = useState({
@@ -27,9 +44,7 @@ export default function StartupForm({ onSubmit }) {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  function set(field) {
-    return e => setForm(f => ({ ...f, [field]: e.target.value }));
-  }
+  const set = field => e => setForm(f => ({ ...f, [field]: e.target.value }));
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -39,146 +54,114 @@ export default function StartupForm({ onSubmit }) {
     setSubmitting(false);
   }
 
-  const inputClass =
-    'w-full bg-surface border border-border rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 ' +
-    'focus:outline-none focus:border-accent/60 transition-all duration-200 ' +
-    'hover:border-border/80';
-  const labelClass = 'block text-sm font-medium text-slate-300 mb-2';
-
-  const charCount = form.description.length;
-  const charColor = charCount === 0
-    ? 'text-slate-600'
-    : charCount < 100
-      ? 'text-orange-400/70'
-      : charCount < 300
-        ? 'text-yellow-400/70'
-        : 'text-emerald-400/70';
+  const len = form.description.length;
+  const charColor = len === 0 ? 'text-text-3'
+    : len < 80   ? 'text-orange-400/70'
+    : len < 250  ? 'text-yellow-400/70'
+    : 'text-emerald-400/70';
 
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-      <div className="glass-card p-6 sm:p-8 space-y-6 glow-border">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-slide-up-fade stagger-1">
-          <div>
-            <label className={labelClass}>Startup Name <span className="text-slate-500">(optional)</span></label>
-            <input
-              type="text"
-              className={inputClass}
-              placeholder="e.g. Airbnb for Boats"
-              value={form.name}
-              onChange={set('name')}
-            />
+      <div className="glass-card p-7 sm:p-10 space-y-8">
+
+        {/* Section 1 — basics */}
+        <div className="space-y-5">
+          <SectionLabel>Basic info</SectionLabel>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <FieldLabel hint="optional">Startup name</FieldLabel>
+              <input className={inputClass} placeholder="e.g. Airbnb for Boats"
+                value={form.name} onChange={set('name')} />
+            </div>
+            <div>
+              <FieldLabel>Industry</FieldLabel>
+              <CustomSelect value={form.industry} onChange={set('industry')}
+                options={INDUSTRIES} placeholder="Select industry…" />
+            </div>
           </div>
           <div>
-            <label className={labelClass}>Industry / Category</label>
-            <CustomSelect
-              value={form.industry}
-              onChange={set('industry')}
-              options={INDUSTRIES}
-              placeholder="Select industry..."
-            />
-          </div>
-        </div>
-
-        <div className="animate-slide-up-fade stagger-2">
-          <label className={labelClass}>
-            One-liner <span className="text-slate-500">(what does it do in one sentence?)</span>
-          </label>
-          <input
-            type="text"
-            className={inputClass}
-            placeholder="e.g. 'We help freelancers track invoices and taxes automatically'"
-            value={form.oneLiner}
-            onChange={set('oneLiner')}
-          />
-        </div>
-
-        <div className="animate-slide-up-fade stagger-3">
-          <label className={labelClass}>
-            Describe your startup idea <span className="text-red-400">*</span>
-            <span className="text-slate-500 font-normal ml-1">— be as detailed as possible</span>
-          </label>
-          <textarea
-            className={`${inputClass} resize-none`}
-            rows={5}
-            placeholder="Explain your startup: what problem it solves, how it works, who it's for, your business model, and what makes it different from existing solutions..."
-            value={form.description}
-            onChange={set('description')}
-            required
-          />
-          <p className={`text-xs mt-1.5 transition-colors duration-300 ${charColor}`}>
-            {charCount} chars{charCount >= 300 ? ' · Great detail!' : charCount >= 100 ? ' · Keep going...' : ' — more detail = better analysis'}
-          </p>
-        </div>
-
-        <div className="animate-slide-up-fade stagger-4">
-          <label className={labelClass}>Unique Value Proposition</label>
-          <input
-            type="text"
-            className={inputClass}
-            placeholder="What makes you 10x better than existing alternatives?"
-            value={form.uvp}
-            onChange={set('uvp')}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-slide-up-fade stagger-5">
-          <div>
-            <label className={labelClass}>Target Audience</label>
-            <input
-              type="text"
-              className={inputClass}
-              placeholder="e.g. SMB owners, Gen Z students"
-              value={form.targetAudience}
-              onChange={set('targetAudience')}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>Current Stage</label>
-            <CustomSelect
-              value={form.stage}
-              onChange={set('stage')}
-              options={STAGES}
-              placeholder="Select stage..."
-            />
-          </div>
-          <div>
-            <label className={labelClass}>Target Market</label>
-            <CustomSelect
-              value={form.geography}
-              onChange={set('geography')}
-              options={GEOGRAPHIES}
-              placeholder="Select region..."
-            />
+            <FieldLabel hint="one sentence">One-liner</FieldLabel>
+            <input className={inputClass}
+              placeholder="e.g. We help freelancers track invoices and taxes automatically"
+              value={form.oneLiner} onChange={set('oneLiner')} />
           </div>
         </div>
 
-        <div className="pt-2 animate-slide-up-fade stagger-6">
+        {/* Section 2 — idea */}
+        <div className="space-y-5">
+          <SectionLabel>Your startup idea</SectionLabel>
+          <div>
+            <FieldLabel required hint="— the more detail, the better the analysis">Full description</FieldLabel>
+            <textarea
+              className={`${inputClass} resize-none leading-relaxed`}
+              rows={6}
+              placeholder="Explain the problem you're solving, how your product works, who it's for, your business model, and what makes it different from existing solutions…"
+              value={form.description} onChange={set('description')} required
+            />
+            <div className="flex justify-between mt-1.5">
+              <span className={`text-[11px] transition-colors duration-300 ${charColor}`}>
+                {len} chars{len >= 250 ? ' · Great detail!' : len >= 80 ? ' · Keep going…' : ''}
+              </span>
+              {len > 0 && len < 80 && (
+                <span className="text-[11px] text-text-3">Aim for 100+ chars</span>
+              )}
+            </div>
+          </div>
+          <div>
+            <FieldLabel hint="what makes you 10× better?">Unique value proposition</FieldLabel>
+            <input className={inputClass}
+              placeholder="e.g. Zero-latency sync + offline-first — unlike Notion which requires internet"
+              value={form.uvp} onChange={set('uvp')} />
+          </div>
+        </div>
+
+        {/* Section 3 — market */}
+        <div className="space-y-5">
+          <SectionLabel>Market details</SectionLabel>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div>
+              <FieldLabel hint="who buys this?">Target audience</FieldLabel>
+              <input className={inputClass} placeholder="e.g. SMB owners, Gen Z students"
+                value={form.targetAudience} onChange={set('targetAudience')} />
+            </div>
+            <div>
+              <FieldLabel>Current stage</FieldLabel>
+              <CustomSelect value={form.stage} onChange={set('stage')}
+                options={STAGES} placeholder="Select stage…" />
+            </div>
+            <div>
+              <FieldLabel>Target market</FieldLabel>
+              <CustomSelect value={form.geography} onChange={set('geography')}
+                options={GEOGRAPHIES} placeholder="Select region…" />
+            </div>
+          </div>
+        </div>
+
+        {/* Submit */}
+        <div className="pt-1">
           <button
             type="submit"
             disabled={!form.description.trim() || submitting}
-            className="shimmer-btn w-full py-4 rounded-xl font-semibold text-base text-white
+            className="shimmer-btn w-full py-4 rounded-2xl font-display font-bold text-[15px] text-white
               transition-all duration-200
-              disabled:opacity-40 disabled:cursor-not-allowed disabled:animate-none
-              disabled:bg-gradient-to-r disabled:from-violet-600 disabled:to-blue-600
-              shadow-lg shadow-violet-900/30 hover:shadow-[0_0_35px_rgba(124,58,237,0.45)]
-              hover:scale-[1.015] active:scale-[0.99]
-              flex items-center justify-center gap-2"
+              disabled:opacity-35 disabled:cursor-not-allowed
+              shadow-xl shadow-violet-900/30
+              hover:shadow-[0_0_40px_rgba(124,58,237,0.4)] hover:scale-[1.012]
+              active:scale-[0.99]
+              flex items-center justify-center gap-3"
           >
             {submitting ? (
               <>
                 <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                Analyzing...
+                Analyzing your idea…
               </>
             ) : (
               <>
                 <span>Analyze My Startup</span>
-                <span className="group-hover:translate-x-1 transition-transform">→</span>
+                <span className="opacity-70">→</span>
               </>
             )}
           </button>
-          <p className="text-center text-slate-600 text-xs mt-3">
-            Takes ~20 seconds · Powered by Gemini AI · No signup required
-          </p>
         </div>
       </div>
     </form>
