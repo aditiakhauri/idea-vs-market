@@ -91,8 +91,8 @@ app.post('/api/analyze', async (req, res) => {
     return res.status(400).json({ error: 'Please provide a detailed startup description.' });
   }
 
-  if (!process.env.GEMINI_API_KEY && !process.env.DEEPSEEK_API_KEY) {
-    return res.status(500).json({ error: 'No AI API key configured. Add GEMINI_API_KEY or DEEPSEEK_API_KEY to your .env file.' });
+  if (!process.env.GEMINI_API_KEY && !process.env.DEEPSEEK_API_KEY && !process.env.GROQ_API_KEY) {
+    return res.status(500).json({ error: 'No AI API key configured. Add GROQ_API_KEY, GEMINI_API_KEY, or DEEPSEEK_API_KEY to your .env file.' });
   }
 
   const userPrompt = `${SYSTEM_PROMPT}
@@ -131,6 +131,22 @@ Provide a comprehensive, honest analysis. Research the competitive landscape car
     return parseAnalysis(result.response.text());
   }
 
+  async function runGroq() {
+    const OpenAI = require('openai');
+    const client = new OpenAI({
+      apiKey: process.env.GROQ_API_KEY,
+      baseURL: 'https://api.groq.com/openai/v1',
+    });
+    const completion = await client.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      max_tokens: 4096,
+      temperature: 0.7,
+      response_format: { type: 'json_object' },
+      messages: [{ role: 'user', content: userPrompt }],
+    });
+    return parseAnalysis(completion.choices[0].message.content);
+  }
+
   async function runDeepSeek() {
     const OpenAI = require('openai');
     const client = new OpenAI({
@@ -147,19 +163,29 @@ Provide a comprehensive, honest analysis. Research the competitive landscape car
     return parseAnalysis(completion.choices[0].message.content);
   }
 
-  try {
-    let analysis;
-    if (process.env.GEMINI_API_KEY) {
+  async function runWithFallbacks() {
+    // Try each provider in order, skip if key not set
+    const providers = [
+      process.env.GROQ_API_KEY    && { name: 'Groq',     fn: runGroq    },
+      process.env.GEMINI_API_KEY  && { name: 'Gemini',   fn: runGemini  },
+      process.env.DEEPSEEK_API_KEY && { name: 'DeepSeek', fn: runDeepSeek },
+    ].filter(Boolean);
+
+    let lastErr;
+    for (const { name, fn } of providers) {
       try {
-        analysis = await runGemini();
-      } catch (geminiErr) {
-        console.warn('Gemini failed, falling back to DeepSeek:', geminiErr.message);
-        if (!process.env.DEEPSEEK_API_KEY) throw geminiErr;
-        analysis = await runDeepSeek();
+        console.log(`Trying ${name}…`);
+        return await fn();
+      } catch (err) {
+        console.warn(`${name} failed: ${err.message}`);
+        lastErr = err;
       }
-    } else {
-      analysis = await runDeepSeek();
     }
+    throw lastErr;
+  }
+
+  try {
+    const analysis = await runWithFallbacks();
     res.json(analysis);
   } catch (err) {
     console.error('Analysis error:', err.message);
@@ -174,8 +200,12 @@ if (process.env.NODE_ENV === 'production') {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  const primary = process.env.GEMINI_API_KEY ? 'Gemini' : process.env.DEEPSEEK_API_KEY ? 'DeepSeek' : null;
-  if (!primary) console.warn('WARNING: No AI API key set in .env file');
-  else console.log(`AI provider: ${primary}${process.env.GEMINI_API_KEY && process.env.DEEPSEEK_API_KEY ? ' (DeepSeek fallback enabled)' : ''}`);
+  const configured = [
+    process.env.GROQ_API_KEY     && 'Groq',
+    process.env.GEMINI_API_KEY   && 'Gemini',
+    process.env.DEEPSEEK_API_KEY && 'DeepSeek',
+  ].filter(Boolean);
+  if (!configured.length) console.warn('WARNING: No AI API key set in .env file');
+  else console.log(`AI providers (in order): ${configured.join(' → ')}`);
 
 });
