@@ -91,19 +91,11 @@ app.post('/api/analyze', async (req, res) => {
     return res.status(400).json({ error: 'Please provide a detailed startup description.' });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY not configured. Add it to your .env file.' });
+  if (!process.env.GEMINI_API_KEY && !process.env.DEEPSEEK_API_KEY) {
+    return res.status(500).json({ error: 'No AI API key configured. Add GEMINI_API_KEY or DEEPSEEK_API_KEY to your .env file.' });
   }
 
-  try {
-    const { GoogleGenerativeAI } = require('@google/generative-ai');
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      generationConfig: { responseMimeType: 'application/json', temperature: 0.7, maxOutputTokens: 4096 },
-    });
-
-    const userPrompt = `${SYSTEM_PROMPT}
+  const userPrompt = `${SYSTEM_PROMPT}
 
 Analyze this startup idea thoroughly:
 
@@ -118,21 +110,56 @@ Analyze this startup idea thoroughly:
 
 Provide a comprehensive, honest analysis. Research the competitive landscape carefully, consider current 2024-2025 market conditions, and give realistic assessments. Remember: respond with ONLY valid JSON, no other text.`;
 
-    const result = await model.generateContent(userPrompt);
-    const rawText = result.response.text().trim();
-
-    let analysis;
+  function parseAnalysis(rawText) {
     try {
-      analysis = JSON.parse(rawText);
-    } catch (parseErr) {
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        analysis = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('Failed to parse AI response as JSON');
-      }
+      return JSON.parse(rawText.trim());
+    } catch {
+      const match = rawText.match(/\{[\s\S]*\}/);
+      if (match) return JSON.parse(match[0]);
+      throw new Error('Failed to parse AI response as JSON');
     }
+  }
 
+  async function runGemini() {
+    const { GoogleGenerativeAI } = require('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      generationConfig: { responseMimeType: 'application/json', temperature: 0.7, maxOutputTokens: 4096 },
+    });
+    const result = await model.generateContent(userPrompt);
+    return parseAnalysis(result.response.text());
+  }
+
+  async function runDeepSeek() {
+    const OpenAI = require('openai');
+    const client = new OpenAI({
+      apiKey: process.env.DEEPSEEK_API_KEY,
+      baseURL: 'https://api.deepseek.com',
+    });
+    const completion = await client.chat.completions.create({
+      model: 'deepseek-chat',
+      max_tokens: 4096,
+      temperature: 0.7,
+      response_format: { type: 'json_object' },
+      messages: [{ role: 'user', content: userPrompt }],
+    });
+    return parseAnalysis(completion.choices[0].message.content);
+  }
+
+  try {
+    let analysis;
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        analysis = await runGemini();
+      } catch (geminiErr) {
+        console.warn('Gemini failed, falling back to DeepSeek:', geminiErr.message);
+        if (!process.env.DEEPSEEK_API_KEY) throw geminiErr;
+        analysis = await runDeepSeek();
+      }
+    } else {
+      analysis = await runDeepSeek();
+    }
     res.json(analysis);
   } catch (err) {
     console.error('Analysis error:', err.message);
@@ -147,7 +174,8 @@ if (process.env.NODE_ENV === 'production') {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  if (!process.env.GEMINI_API_KEY) {
-    console.warn('WARNING: GEMINI_API_KEY not set in .env file');
-  }
+  const primary = process.env.GEMINI_API_KEY ? 'Gemini' : process.env.DEEPSEEK_API_KEY ? 'DeepSeek' : null;
+  if (!primary) console.warn('WARNING: No AI API key set in .env file');
+  else console.log(`AI provider: ${primary}${process.env.GEMINI_API_KEY && process.env.DEEPSEEK_API_KEY ? ' (DeepSeek fallback enabled)' : ''}`);
+
 });
