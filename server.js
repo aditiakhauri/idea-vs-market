@@ -81,7 +81,22 @@ Return this exact JSON structure:
   "alternativeAngles": [<2-3 alternative versions or pivots of this idea that might work better>],
   "whatWorking": [<3-4 things currently working in this market that support the idea>],
   "whatNotWorking": [<3-4 things that have failed in this space or headwinds>],
-  "executionPriorities": [<top 3-4 things to do first if pursuing this>]
+  "executionPriorities": [<top 3-4 things to do first if pursuing this>],
+  "lifespan": {
+    "projectedRunway": <realistic runway estimate as string, e.g. "12-18 months" or "3-5 years">,
+    "lifespanCategory": <"short" (under 2 years likely)|"medium" (2-5 years)|"long" (5+ years sustainable)>,
+    "survivalProbability": {
+      "oneYear": <integer 0-100 — % chance of still operating after 1 year>,
+      "threeYear": <integer 0-100 — % chance of still operating after 3 years>,
+      "fiveYear": <integer 0-100 — % chance of still operating after 5 years>
+    },
+    "criticalMilestones": [<3-4 key milestones that determine survival, e.g. "Reach 1000 paying users within 6 months">],
+    "deathScenarios": [
+      {"scenario": <string describing a realistic failure mode>, "likelihood": <"low"|"medium"|"high">}
+    ],
+    "longevityFactors": [<3-4 factors that would significantly extend this startup's lifespan>],
+    "assessment": <2-3 sentence overall lifespan assessment based on market, competition, and execution risk>
+  }
 }`;
 
 app.post('/api/analyze', async (req, res) => {

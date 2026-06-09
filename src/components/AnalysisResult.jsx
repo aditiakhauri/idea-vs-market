@@ -2,6 +2,7 @@ import RatingGauge from './RatingGauge.jsx';
 import SwotAnalysis from './SwotAnalysis.jsx';
 import MarketInsights from './MarketInsights.jsx';
 import SuggestionsPanel from './SuggestionsPanel.jsx';
+import LifespanCard from './LifespanCard.jsx';
 
 const SEV = {
   low:      { color: 'text-emerald-400', bg: 'rgba(16,185,129,0.06)',  border: 'rgba(16,185,129,0.2)',  label: 'Low'      },
@@ -26,7 +27,7 @@ function fadeIn(delay) {
 
 export default function AnalysisResult({ analysis, startupName }) {
   const { rating, verdict, summary, risks, investorPerspective,
-    suggestions, alternativeAngles, executionPriorities, swot } = analysis;
+    suggestions, alternativeAngles, executionPriorities, swot, lifespan } = analysis;
 
   return (
     <div className="space-y-5 pb-20">
@@ -80,6 +81,14 @@ export default function AnalysisResult({ analysis, startupName }) {
       <div {...fadeIn(0.20)}>
         <SwotAnalysis swot={swot} />
       </div>
+
+      {/* ── Lifespan ─────────────────────────── */}
+      {lifespan && (
+        <div {...fadeIn(0.26)}>
+          <SectionHeading icon="⏳">Life Span Forecast</SectionHeading>
+          <LifespanCard lifespan={lifespan} />
+        </div>
+      )}
 
       {/* ── Risks ────────────────────────────── */}
       {risks?.length > 0 && (
